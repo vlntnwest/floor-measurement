@@ -7,7 +7,9 @@ export default function Instructions() {
           Set Reference Mode and click 2 points on the plan with a known
           distance
         </li>
-        <li>Enter the real distance in centimeters and click "Set Scale"</li>
+        <li>
+          Enter the real distance in centimeters and click {'"Set Scale"'}
+        </li>
         <li>
           Switch to Measure Mode and click any 2 points to get their distance
         </li>
