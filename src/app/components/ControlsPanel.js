@@ -1,19 +1,25 @@
 import StatusDisplay from "./StatusDisplay";
+import { useMeasurement } from "../context/MeasurementContext";
+import ZoomControls from "./ZoomControls";
 
-export default function ControlsPanel({
-  mode,
-  setMode,
-  referenceDistance,
-  setReferenceDistance,
-  setReferenceScale,
-  referencePoints,
-  resetAll,
-  scaleFactor,
-  calculatedDistance,
-}) {
+export default function ControlsPanel({}) {
+  const {
+    mode,
+    setMode,
+    referenceDistance,
+    setReferenceDistance,
+    setReferenceScale,
+    referencePoints,
+    resetAll,
+    scaleFactor,
+    calculatedDistance,
+    totalDistance,
+    measuredDistances,
+  } = useMeasurement();
+
   return (
     <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-col-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {/* Mode Selection */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -33,11 +39,20 @@ export default function ControlsPanel({
             <button
               onClick={() => setMode("measure")}
               disabled={!scaleFactor}
-              className={`px-3 py-2 rounded-md text-sm font-medium ${
-                mode === "measure" && scaleFactor
-                  ? "bg-green-500 text-white"
-                  : "bg-gray-200 text-gray-500 cursor-not-allowed"
-              }`}
+              className={`px-3 py-2 rounded-md text-sm font-medium
+                ${
+                  mode === "measure" && scaleFactor
+                    ? "bg-green-500 text-white"
+                    : "bg-gray-200 text-gray-700"
+                }
+                ${
+                  !scaleFactor
+                    ? "cursor-not-allowed"
+                    : mode !== "measure"
+                    ? "cursor-pointer"
+                    : ""
+                }
+              `}
             >
               Measure
             </button>
@@ -55,7 +70,7 @@ export default function ControlsPanel({
               value={referenceDistance}
               onChange={(e) => setReferenceDistance(e.target.value)}
               placeholder="Enter distance in cm"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm text-black"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm text-black max-w-[200px]"
               disabled={referencePoints.length !== 2}
             />
             <button
@@ -67,6 +82,7 @@ export default function ControlsPanel({
             </button>
           </div>
         </div>
+        <ZoomControls />
 
         {/* Reset Button */}
         <div>
@@ -86,6 +102,8 @@ export default function ControlsPanel({
         referencePoints={referencePoints}
         scaleFactor={scaleFactor}
         calculatedDistance={calculatedDistance}
+        totalDistance={totalDistance}
+        measuredDistances={measuredDistances}
       />
     </div>
   );

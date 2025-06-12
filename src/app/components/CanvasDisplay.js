@@ -1,11 +1,15 @@
-export default function CanvasDisplay({
-  uploadedImage,
-  imageRef,
-  canvasRef,
-  imageLoaded,
-  handleCanvasClick,
-  handleImageLoad,
-}) {
+import { useMeasurement } from "../context/MeasurementContext";
+
+export default function CanvasDisplay() {
+  const {
+    uploadedImage,
+    imageRef,
+    canvasRef,
+    imageLoaded,
+    handleCanvasClick,
+    handleImageLoad,
+  } = useMeasurement();
+
   return (
     <div className="relative border border-gray-300 rounded-lg overflow-hidden">
       <img

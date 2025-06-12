@@ -1,4 +1,8 @@
-export default function UploadSection({ handleImageUpload }) {
+import { useMeasurement } from "../context/MeasurementContext";
+
+export default function UploadSection() {
+  const { handleImageUpload } = useMeasurement();
+
   return (
     <div className="mb-6">
       <label className="block text-sm font-medium text-gray-700 mb-2">
