@@ -8,6 +8,9 @@ export default function StatusDisplay() {
     totalDistance,
     measuredDistances,
     setMeasuredDistances,
+    mode,
+    polygonClosed,
+    polygonArea,
   } = useMeasurement();
 
   return (
@@ -26,13 +29,20 @@ export default function StatusDisplay() {
       </div>
       <div>
         <span className="font-medium text-green-600">Last Measurement:</span>{" "}
-        <span className="font-medium text-black">
-          {calculatedDistance !== null
-            ? `${calculatedDistance.toFixed(1)} cm`
-            : "None"}
-        </span>
+        {mode === "distance" && (
+          <span className="font-medium text-black">
+            {calculatedDistance !== null
+              ? `${calculatedDistance.toFixed(1)} cm`
+              : "null"}
+          </span>
+        )}
+        {mode === "surface" && scaleFactor && (
+          <span className="font-medium text-black">
+            {polygonArea !== "" ? `${polygonArea} m²` : "null"}
+          </span>
+        )}
       </div>
-      {measuredDistances.length > 0 && (
+      {measuredDistances.length > 0 && mode === "distance" && (
         <div>
           <span className="font-medium text-green-600">Total</span>{" "}
           <span className="font-medium text-black">

@@ -1,3 +1,4 @@
+"use client";
 import { useMeasurement } from "../context/MeasurementContext";
 
 export default function CanvasDisplay() {

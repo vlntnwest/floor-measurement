@@ -37,24 +37,44 @@ export default function ControlsPanel({}) {
               Set Reference
             </button>
             <button
-              onClick={() => setMode("measure")}
+              onClick={() => setMode("distance")}
               disabled={!scaleFactor}
               className={`px-3 py-2 rounded-md text-sm font-medium
                 ${
-                  mode === "measure" && scaleFactor
+                  mode === "distance" && scaleFactor
                     ? "bg-green-500 text-white"
                     : "bg-gray-200 text-gray-700"
                 }
                 ${
                   !scaleFactor
                     ? "cursor-not-allowed"
-                    : mode !== "measure"
+                    : mode !== "distance"
                     ? "cursor-pointer"
                     : ""
                 }
               `}
             >
-              Measure
+              Distance
+            </button>
+            <button
+              onClick={() => setMode("surface")}
+              disabled={!scaleFactor}
+              className={`px-3 py-2 rounded-md text-sm font-medium
+                ${
+                  mode === "surface" && scaleFactor
+                    ? "bg-green-500 text-white"
+                    : "bg-gray-200 text-gray-700"
+                }
+                ${
+                  !scaleFactor
+                    ? "cursor-not-allowed"
+                    : mode !== "surface"
+                    ? "cursor-pointer"
+                    : ""
+                }
+              `}
+            >
+              Surface
             </button>
           </div>
         </div>

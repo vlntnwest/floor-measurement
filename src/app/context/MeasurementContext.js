@@ -25,6 +25,9 @@ export function MeasurementProvider({ children }) {
   const [calculatedDistance, setCalculatedDistance] = useState(null);
   const [measuredDistances, setMeasuredDistances] = useState([]);
   const [zoom, setZoom] = useState(1);
+  const [surfacePoints, setSurfacePoints] = useState([]);
+  const [polygonClosed, setPolygonClosed] = useState(false);
+  const [polygonArea, setPolygonArea] = useState("");
 
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
@@ -68,57 +71,53 @@ export function MeasurementProvider({ children }) {
     canvas.width = img.naturalWidth * zoom;
     canvas.height = img.naturalHeight * zoom;
 
-    ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset any previous scaling
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset scaling
     ctx.scale(zoom, zoom);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0);
 
-    // Draw reference points
-    referencePoints.forEach((point, i) => {
-      ctx.beginPath();
-      ctx.arc(point.x, point.y, 8, 0, 2 * Math.PI);
-      ctx.fillStyle = "#ef4444";
-      ctx.fill();
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "16px Arial";
-      ctx.fillText(`R${i + 1}`, point.x + 12, point.y - 8);
-    });
+    // --- Reference points ---
+    if (mode === "reference") {
+      referencePoints.forEach((point, i) => {
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 8, 0, 2 * Math.PI);
+        ctx.fillStyle = "#ef4444";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
 
-    if (referencePoints.length === 2) {
-      ctx.beginPath();
-      ctx.moveTo(referencePoints[0].x, referencePoints[0].y);
-      ctx.lineTo(referencePoints[1].x, referencePoints[1].y);
-      ctx.strokeStyle = "#ef4444";
-      ctx.lineWidth = 3;
-      ctx.stroke();
+      if (referencePoints.length === 2) {
+        ctx.beginPath();
+        ctx.moveTo(referencePoints[0].x, referencePoints[0].y);
+        ctx.lineTo(referencePoints[1].x, referencePoints[1].y);
+        ctx.strokeStyle = "#ef4444";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
     }
 
-    // Draw measure points
-    measurePoints.forEach((point, i) => {
-      ctx.beginPath();
-      ctx.arc(point.x, point.y, 8, 0, 2 * Math.PI);
-      ctx.fillStyle = "#22c55e";
-      ctx.fill();
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "16px Arial";
-      ctx.fillText(`M${i + 1}`, point.x + 12, point.y - 8);
-    });
+    // --- Measure points ---
+    if (mode === "distance") {
+      measurePoints.forEach((point, i) => {
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 8, 0, 2 * Math.PI);
+        ctx.fillStyle = "#22c55e";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
 
-    if (measurePoints.length === 2) {
-      ctx.beginPath();
-      ctx.moveTo(measurePoints[0].x, measurePoints[0].y);
-      ctx.lineTo(measurePoints[1].x, measurePoints[1].y);
-      ctx.strokeStyle = "#22c55e";
-      ctx.lineWidth = 3;
-      ctx.stroke();
+      if (measurePoints.length === 2 && calculatedDistance !== null) {
+        ctx.beginPath();
+        ctx.moveTo(measurePoints[0].x, measurePoints[0].y);
+        ctx.lineTo(measurePoints[1].x, measurePoints[1].y);
+        ctx.strokeStyle = "#22c55e";
+        ctx.lineWidth = 2;
+        ctx.stroke();
 
-      if (calculatedDistance !== null) {
         const midX = (measurePoints[0].x + measurePoints[1].x) / 2;
         const midY = (measurePoints[0].y + measurePoints[1].y) / 2;
         ctx.fillStyle = "#22c55e";
@@ -130,7 +129,61 @@ export function MeasurementProvider({ children }) {
         );
       }
     }
-  }, [referencePoints, measurePoints, calculatedDistance, imageLoaded, zoom]);
+
+    // --- Surface drawing ---
+    if (mode === "surface" && surfacePoints.length > 0) {
+      ctx.beginPath();
+      ctx.moveTo(surfacePoints[0].x, surfacePoints[0].y);
+      for (let i = 1; i < surfacePoints.length; i++) {
+        ctx.lineTo(surfacePoints[i].x, surfacePoints[i].y);
+      }
+
+      if (polygonClosed) {
+        ctx.closePath();
+        ctx.fillStyle = "rgba(34,197,94,0.3)";
+        ctx.fill();
+      }
+
+      ctx.strokeStyle = "#10b981";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      surfacePoints.forEach((point, i) => {
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 6, 0, 2 * Math.PI);
+        ctx.fillStyle = "#10b981";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+
+      if (polygonClosed && scaleFactor) {
+        const areaPx = calculatePolygonArea(surfacePoints);
+        const areaCm2 = areaPx * scaleFactor * scaleFactor;
+        const areaM2 = areaCm2 / 10000;
+        setPolygonArea(areaM2.toFixed(2));
+        const cx =
+          surfacePoints.reduce((sum, p) => sum + p.x, 0) / surfacePoints.length;
+        const cy =
+          surfacePoints.reduce((sum, p) => sum + p.y, 0) / surfacePoints.length;
+
+        ctx.fillStyle = "#15803d";
+        ctx.font = "bold 18px Arial";
+        ctx.fillText(`${areaM2.toFixed(2)} m²`, cx, cy);
+      }
+    }
+  }, [
+    referencePoints,
+    measurePoints,
+    surfacePoints,
+    calculatedDistance,
+    polygonClosed,
+    scaleFactor,
+    imageLoaded,
+    zoom,
+    mode,
+  ]);
 
   const handleCanvasClick = (event) => {
     if (!imageLoaded) return;
@@ -150,7 +203,7 @@ export function MeasurementProvider({ children }) {
         setScaleFactor(null);
         setCalculatedDistance(null);
       }
-    } else if (mode === "measure") {
+    } else if (mode === "distance") {
       if (measurePoints.length < 2) {
         const newPoints = [...measurePoints, { x, y }];
         setMeasurePoints(newPoints);
@@ -164,7 +217,33 @@ export function MeasurementProvider({ children }) {
         setMeasurePoints([{ x, y }]);
         setCalculatedDistance(null);
       }
+    } else if (mode === "surface") {
+      if (polygonClosed) {
+        setSurfacePoints([{ x, y }]);
+        setPolygonClosed(false);
+        return;
+      }
+
+      if (surfacePoints.length > 2) {
+        const first = surfacePoints[0];
+        const distanceToFirst = Math.hypot(first.x - x, first.y - y);
+        if (distanceToFirst < 10) {
+          setPolygonClosed(true);
+          return;
+        }
+      }
+
+      setSurfacePoints([...surfacePoints, { x, y }]);
     }
+  };
+
+  const calculatePolygonArea = (points) => {
+    let area = 0;
+    for (let i = 0; i < points.length; i++) {
+      const j = (i + 1) % points.length;
+      area += points[i].x * points[j].y - points[j].x * points[i].y;
+    }
+    return Math.abs(area / 2);
   };
 
   const setReferenceScale = () => {
@@ -185,6 +264,10 @@ export function MeasurementProvider({ children }) {
     setCalculatedDistance(null);
     setReferenceDistance("");
     setMeasuredDistances([]);
+    setSurfacePoints([]);
+    setPolygonClosed(false);
+    setPolygonArea("");
+    setMode("reference");
   };
 
   const zoomIn = () => setZoom((z) => Math.min(z + 0.1, 5));
@@ -232,6 +315,11 @@ export function MeasurementProvider({ children }) {
         setReferenceScale,
         resetAll,
         totalDistance,
+        surfacePoints,
+        setSurfacePoints,
+        polygonClosed,
+        setPolygonClosed,
+        polygonArea,
       }}
     >
       {children}
