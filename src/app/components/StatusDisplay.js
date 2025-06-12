@@ -36,7 +36,7 @@ export default function StatusDisplay() {
         <div>
           <span className="font-medium text-green-600">Total</span>{" "}
           <span className="font-medium text-black">
-            {totalDistance.toFixed(2)} m
+            {totalDistance.toFixed(2)} cm
           </span>
           <button
             className="px-4 py-2 bg-gray-500 text-white rounded-md text-sm font-medium hover:bg-gray-600 ml-4"
